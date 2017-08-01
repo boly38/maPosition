@@ -4,6 +4,8 @@ class MaCache {
    var $dev = true;
    
    function getCacheNear($lat, $lon) {
-		echo "get cache near $lat, $lon\n";
+     $distKm = 4;
+	 echo "get cache $distKm km near $lat, $lon ...\n";
+
    }
 }

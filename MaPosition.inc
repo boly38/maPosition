@@ -18,11 +18,14 @@ class MaPosition {
    }
    
    function locateMe() {
-		$this->locateMeIpApi(); // moins fiable ?
+		/*
+		// moins fiable ? souvent lent..
+		$this->locateMeIpApi(); 
 		if ($this->isLocated()) {
 			$this->hello();
 			return;
 		}
+		*/
 		$this->locateMeFreegeoip();
 		if ($this->isLocated()) {
 			$this->hello();
