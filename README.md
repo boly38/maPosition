@@ -12,7 +12,10 @@ heu ..
 
 ## feature
 * determine position from IP
-* list Geokret from a given position and a distance in km (thx https://geokretymap.org/)
+
+from a given position and a distance in km :
+* list Geokret (thx https://geokretymap.org/)
+* list Munzees (thx https://github.com/CartoDB/labs-munzee/)
 
 ## planned action
 * add more POI (TBD)

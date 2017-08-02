@@ -1,6 +1,4 @@
 <?php
-include "externalLib.inc";
-
 class MesGeokrets {
    var $dev = true;
 
