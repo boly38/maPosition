@@ -12,7 +12,7 @@ heu ..
 
 ## feature
 * determine position from IP
-* list Geokret from a given position and a distance in km (thx http://geokretymap.org/)
+* list Geokret from a given position and a distance in km (thx https://geokretymap.org/)
 
 ## planned action
 * add more POI (TBD)
