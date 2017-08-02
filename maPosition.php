@@ -1,13 +1,30 @@
 <?php
 include "MaPosition.inc";
-include "MaCache.inc";
+include "MesGeokrets.inc";
 
-	$mp = new MaPosition();
-	$mp->locateMe();
+try {
+  // position pays/ville/lat/lon par rapport à une ip
+	$ip = ""; // php execution server ip (if public)
+	$ip = "8.8.8.8"; // google DNS @ Mountain View
+	$mp = new MaPosition($ip);
+	$mp->locateMyIP();
 	if (!$mp->isLocated()) {
-		return;
+		$mp = null;
 	}
-	
-	$mc = new MaCache();
-	$mc->getCacheNear($mp->lat, $mp->lon);
+
+  // geokrets par rapport à une position et une distance en km
+  $distKm = 10;
+	if (isset($argv[1])) {
+		$distKm = $argv[1];
+	}
+	$mgk = new MesGeokrets();
+
+  if ($mp != null) {
+	  $mgk->getGKNear($mp, $distKm);
+  }
+	$mgk->getGKNear(MaPosition::getGrenoble(), $distKm);
+} catch (Exception $e) {
+    echo ' XXX Exception : ',  $e->getMessage(), "\n";
+		echo ' Usage: ',  $argv[0], " <distanceKm>\n";
+}
 ?>

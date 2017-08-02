@@ -17,7 +17,16 @@ class MaPosition {
 	  }
    }
    
-   function locateMe() {
+   public static function getGrenoble() {
+    $obj = new static();
+    // par rapport à Grenoble centre
+    $obj->lat = 45.184233;
+    $obj->lon =  5.726055;
+    $obj->city = "Grenoble";
+    return $obj;
+   }
+   
+   function locateMyIP() {
 		/*
 		// moins fiable ? souvent lent..
 		$this->locateMeIpApi(); 
