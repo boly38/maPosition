@@ -18,7 +18,7 @@ class MesGeokrets {
      $tlLat = $box[2];
      $tlLon = $box[3];
 
-     $target = "https://api.geokretymap.org/geojson?latTL=$tlLat&lonTL=$tlLon&latBR=$brLat&lonBR=$brLon&limit=500&json=1&daysFrom=0&daysTo=-1";
+     $target = "https://api.geokretymap.org/geojson?latTL=$tlLat&lonTL=$tlLon&latBR=$brLat&lonBR=$brLon&limit=500&daysFrom=0&daysTo=-1";
      // echo "ask to $target\n";
      $json = file_get_contents($target);
      $obj = json_decode($json);
