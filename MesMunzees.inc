@@ -1,15 +1,15 @@
 <?php
 class MesMunzees {
    var $dev = true;
-   
+
    var $apiUser = null;
    var $apiToken = null;
-   
+
    function MesMunzees() {
 	  $this->apiUser  = getenv("MUNZEE_USER");
 	  $this->apiToken = getenv("MUNZEE_TOKEN");
    }
-   
+
    function isAvailable() {
       return ($this->apiUser != null && $this->apiToken != null);
    }
@@ -20,7 +20,7 @@ class MesMunzees {
 		return;
 	 }
      if ($distKm < 1 || $distKm > 50) {
-       throw new Exception("la distance doit être comprise entre 1 et 50 km");
+       throw new Exception("la distance doit ï¿½tre comprise entre 1 et 50 km");
      }
      $lat = $position->lat;
      $lon = $position->lon;
@@ -37,7 +37,7 @@ class MesMunzees {
 	 $apiToken = $this->apiToken;
 
      $target = "https://api.munzee.com/map/cartodb?username=$apiUser&mhq_token=$apiToken&longitude1=$tlLon&latitude1=$brLat&longitude2=$brLon&latitude2=$tlLat";
-     echo "ask to $target\n";
+     // echo "appel de $target\n";
      $json = file_get_contents($target);
      $obj = json_decode($json);
      $mzCount = count($obj->data);

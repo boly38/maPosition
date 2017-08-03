@@ -16,7 +16,7 @@ class MaPosition {
 		$this->ip = $ip;
 	  }
    }
-   
+
    public static function getGrenoble() {
     $obj = new static();
     // par rapport à Grenoble centre
@@ -25,11 +25,11 @@ class MaPosition {
     $obj->city = "Grenoble";
     return $obj;
    }
-   
+
    function locateMyIP() {
 		/*
 		// moins fiable ? souvent lent..
-		$this->locateMeIpApi(); 
+		$this->locateMeIpApi();
 		if ($this->isLocated()) {
 			$this->hello();
 			return;
@@ -46,23 +46,23 @@ class MaPosition {
 			return;
 		}
    }
-   
+
    function hello() {
 	  echo "Hey $this->ip from " . $this->country . ", " . $this->city . " [$this->lat,$this->lon]! ($this->locTime ms)\n";
    }
-   
+
    function _toMs($end,$start) {
      return number_format($end-$start, 3)*1000;
    }
-   
+
    function isLocated() {
 		return ($this->city != "") && ($this->lat != "") && ($this->lon != "");
    }
-   
+
    function locateMeFreegeoip() {
      $timestart=microtime(true);
      $target = 'https://freegeoip.net/json/' . $this->ip;
-	 echo "ask to $target\n";
+	 echo "appel de $target\n";
 	 $json = file_get_contents($target);
 	 $obj = json_decode($json);
 	 $this->country = $obj->country_name;
@@ -74,11 +74,11 @@ class MaPosition {
 	 $timeend=microtime(true);
 	 $this->locTime=$this->_toMs($timeend,$timestart);
    }
-   
+
    function locateMeIpApi() {
      $timestart=microtime(true);
      $target = 'http://ip-api.com/php/' . $this->ip;
-	 echo "ask to $target\n";
+	 echo "appel de $target\n";
 	 $query = @unserialize (file_get_contents($target));
 	 if ($query && $query['status'] == 'success') {
 		// echo 'Hey user from ' . $query['country'] . ', ' . $query['city'] . '!';
@@ -94,14 +94,14 @@ class MaPosition {
 		var_dump($query);
 	 }
    }
-   
+
    function locateMeGoPlugin() {
      $timestart=microtime(true);
 	 $target = 'http://www.geoplugin.net/php.gp';
 	 if (isset($this->ip)) {
 		$target = "http://www.geoplugin.net/php.gp?ip=" . $this->ip;
 	 }
-	 echo "ask to $target\n";
+	 echo "appel de $target\n";
 	 $geo = unserialize(file_get_contents($target));
 	 // var_dump($geo);
 	 $this->country = $geo["geoplugin_countryName"];

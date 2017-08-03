@@ -25,13 +25,13 @@ try {
 	  $mgk->getGKNear($mp, $distKm);
   }
   $mgk->getGKNear(MaPosition::getGrenoble(), $distKm);
-  
+
   $mmz= new MesMunzees();
   $mmz->getMzNear(MaPosition::getGrenoble(), $distKm);
-  
-  
+
+
 } catch (Exception $e) {
     echo ' XXX Exception : ',  $e->getMessage(), "\n";
-		echo ' Usage: ',  $argv[0], " <distanceKm>\n";
+		echo ' Utilisation: ',  $argv[0], " <distanceKm>\n";
 }
 ?>
