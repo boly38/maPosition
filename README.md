@@ -21,15 +21,15 @@ Des fonctions peuvent être activées via l'environnement (utiliser `setEnv.sh`)
 
 
 ## Fonctions
-* determine position from IP
+* determine une position via l'IP
 
-from a given position and a distance in km :
-* list Geokret (thx https://geokretymap.org/)
-* list Munzees (thx https://github.com/CartoDB/labs-munzee/)
+depuis une postion et une distance en KM:
+* lister les Géokrets (merci à [geokretymap](https://geokretymap.org/)
+* lister les Munzees (merci à [labs-munzee](https://github.com/CartoDB/labs-munzee/)
+* lister les Waymarks (merci à [waymarking](https://waymarking.com) et à [waymarking-lib (Ruby)](https://github.com/pkubiak/waymarking-lib/blob/master/lib/waymarking/search_query.rb) )
 
 ## Possibles évolutions
 * ajouter des caches
-* ajouter [waymarking](https://waymarking.com) (piste: [waymarking-lib (Ruby)](https://github.com/pkubiak/waymarking-lib/blob/master/lib/waymarking/search_query.rb) )
 * ajouter d'autres POI
 * déplacer les fonctions dans une page web
 * ajouter un fond de carte
