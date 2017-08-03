@@ -6,18 +6,18 @@ Pour le démarrage, le projet est en PHP et utilisable depuis une console linux,
 
 ## Pré-requis
 * GIT + PHP
-* exemple avec un bash ubuntu
-** `apt get install git php`
+
+Exemple avec un bash ubuntu
+* `apt get install git php`
 
 ## Comment exécuter le projet ?
 * `git clone`
 * `php maPosition.php`
 
-Des fonctions peuvent être activées via l'environnement
-* utiliser `setEnv.sh`
-** `cp setEnv.sh setEnv.private.sh`
-** `vi setEnv.private.sh`
-** `. setEnv.private.sh`
+Des fonctions peuvent être activées via l'environnement (utiliser `setEnv.sh`):
+* `cp setEnv.sh setEnv.private.sh`
+* `vi setEnv.private.sh`
+* `. setEnv.private.sh`
 
 
 ## Fonctions
@@ -29,8 +29,7 @@ from a given position and a distance in km :
 
 ## Possibles évolutions
 * ajouter des caches
-* ajouter [waymarking](https://waymarking.com)
-** piste: [waymarking-lib (Ruby)](https://github.com/pkubiak/waymarking-lib/blob/master/lib/waymarking/search_query.rb)
+* ajouter [waymarking](https://waymarking.com) (piste: [waymarking-lib (Ruby)](https://github.com/pkubiak/waymarking-lib/blob/master/lib/waymarking/search_query.rb) )
 * ajouter d'autres POI
 * déplacer les fonctions dans une page web
 * ajouter un fond de carte
