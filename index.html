@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+ <head>
+  <title>OpenLayers Simplest Example</title>
+  <link rel="stylesheet" href="style.css">
+ </head>
+<body>
+<div id="wrapper">
+  <header id="pagehead">head</header>
+  <div id="map" style="height: 10px;"></div>
+  <!--footer>foot</footer> -->
+</div>
+<script src="OpenLayers-2.13.1/OpenLayers.js"></script>
+<script>
+
+var fromProjection = new OpenLayers.Projection("EPSG:4326");   // Transform from WGS 1984
+var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
+var lat            = 47.35387;
+var lon            = 8.43609;
+var zoom           = 18;
+var map;
+
+    function openMap(lat, lon) {
+      var position       = new OpenLayers.LonLat(lon, lat).transform( fromProjection, toProjection);
+
+      map = new OpenLayers.Map("map");
+      var mapnik         = new OpenLayers.Layer.OSM();
+      map.addLayer(mapnik);
+
+      var markers = new OpenLayers.Layer.Markers( "Markers" );
+      map.addLayer(markers);
+      markers.addMarker(new OpenLayers.Marker(position));
+
+      map.setCenter(position, zoom);
+      console.info("map ok " + lat + "," + lon);
+    }
+
+    function changePosition(lat, lon) {
+      map.setCenter(
+        new OpenLayers.LonLat(lon,lat)
+            .transform(fromProjection,toProjection),
+            zoom); // zoom level
+    }
+
+    var ph = document.getElementById("pagehead");
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+      } else {
+        ph.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    }
+    function showPosition(position) {
+      lat = position.coords.latitude;
+      lon = position.coords.longitude;
+      ph.innerHTML = "Latitude: " + lat +"<br>Longitude: " + lon;
+      changePosition(lat, lon);
+      console.info("showPosition ok " + lat + "," + lon);
+    }
+
+    openMap(lat, lon);
+    getLocation();
+</script>
+</body>
+</html>
