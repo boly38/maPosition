@@ -49,6 +49,8 @@
   var lon=  5.726055;
   var zoom = 12;
   var map;
+
+
   // var fromProjection = new ol.Projection("EPSG:4326");   // Transform from WGS 1984
   // var toProjection   = new ol.Projection("EPSG:900913"); // to Spherical Mercator Projection
 
@@ -107,8 +109,8 @@
   }
 
   function gk() {
-    dev = true;
-    console.info("GK " + dev?"DEV":"PROD");
+    dev = false;
+    console.info("GK " + (dev?"DEV":"PROD"));
     var bounds = getBoundsFromMap();
     console.info(bounds);
     // appel de https://api.geokretymap.org/geojson?latTL=45.229224356422&lonTL=5.7898879692337&latBR=45.139241643578&lonBR=5.6622220307663&limit=500&daysFrom=0&daysTo=-1
@@ -117,6 +119,16 @@
     if (!dev) {
       $.getJSON( gkUrl, function( data ) {
         console.info(data);
+
+        var gkSource = new ol.source.Vector({});
+        gkSource.addFeatures((new ol.format.GeoJSON()).readFeatures(data,{
+          featureProjection: 'EPSG:3857'
+        }));
+        var gkLayer = new ol.layer.Vector({
+          source: gkSource
+        });
+        map.addLayer(gkLayer);
+        // todo: popup + layer remove
       });
     }
   }
