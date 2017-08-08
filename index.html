@@ -1,65 +1,140 @@
 <!DOCTYPE HTML>
 <html>
  <head>
-  <title>OpenLayers Simplest Example</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>maPosition</title>
   <link rel="stylesheet" href="style.css">
+  <script
+  src="http://code.jquery.com/jquery-3.2.1.js"
+  integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+  crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
+     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+     <script src="https://openlayers.org/en/v4.2.0/build/ol.js"></script>
+     <style>
+       a.skiplink {
+         position: absolute;
+         clip: rect(1px, 1px, 1px, 1px);
+         padding: 0;
+         border: 0;
+         height: 1px;
+         width: 1px;
+         overflow: hidden;
+       }
+       a.skiplink:focus {
+         clip: auto;
+         height: auto;
+         width: auto;
+         background-color: #fff;
+         padding: 0.3em;
+       }
+       #map:focus {
+         outline: #4A74A8 solid 0.15em;
+       }
+     </style>
  </head>
 <body>
-<div id="wrapper">
-  <header id="pagehead">head</header>
-  <div id="map" style="height: 10px;"></div>
-  <!--footer>foot</footer> -->
-</div>
-<script src="OpenLayers-2.13.1/OpenLayers.js"></script>
+  <div style="position:absolute; left:300px; top:10px; z-index: 99;"><button onclick="gk()">GK</button></div>
+  <div style="position:absolute; left:350px; top:10px; z-index: 99;"><button onclick="getLocation()">Pos</button></div>
+  <a class="skiplink" href="#map">Go to map</a>
+  <div id="map" class="map" tabindex="0"></div>
+  <button id="zoom-out">Zoom out</button>
+  <button id="zoom-in">Zoom in</button>
+  <div style="position:absolute; left:20px; top:500px; z-index: 99;" id="posLabel"><!--position Label--></div>
 <script>
+  // Grenoble
+  var lat= 45.184233;
+  var lon=  5.726055;
+  var zoom = 12;
+  var map;
+  // var fromProjection = new ol.Projection("EPSG:4326");   // Transform from WGS 1984
+  // var toProjection   = new ol.Projection("EPSG:900913"); // to Spherical Mercator Projection
 
-var fromProjection = new OpenLayers.Projection("EPSG:4326");   // Transform from WGS 1984
-var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
-var lat            = 47.35387;
-var lon            = 8.43609;
-var zoom           = 18;
-var map;
+  function openMap(lat, lon) {
+    // https://openlayers.org/en/latest/doc/faq.html
+    var schladming = [lon, lat]; // caution partner, read on...
+    var schladmingWebMercator = ol.proj.fromLonLat(schladming);
+    map = new ol.Map({
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        })
+      ],
+      target: 'map',
+      controls: ol.control.defaults({
+        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+          collapsible: false
+        })
+      }),
+      view: new ol.View({
+        center: schladmingWebMercator, // [0, 0],
+        zoom: zoom
+      })
+    });
+  }
 
-    function openMap(lat, lon) {
-      var position       = new OpenLayers.LonLat(lon, lat).transform( fromProjection, toProjection);
+  document.getElementById('zoom-out').onclick = function() {
+    var view = map.getView();
+    var zoom = view.getZoom();
+    view.setZoom(zoom - 1);
+  };
 
-      map = new OpenLayers.Map("map");
-      var mapnik         = new OpenLayers.Layer.OSM();
-      map.addLayer(mapnik);
+  document.getElementById('zoom-in').onclick = function() {
+    var view = map.getView();
+    var zoom = view.getZoom();
+    view.setZoom(zoom + 1);
+  };
 
-      var markers = new OpenLayers.Layer.Markers( "Markers" );
-      map.addLayer(markers);
-      markers.addMarker(new OpenLayers.Marker(position));
+  openMap(lat, lon);
+  // getLocation();
+  function getBoundsFromMap() {
+    var cex = map.getView().calculateExtent(map.getSize());
+    var exA = ol.proj.toLonLat([cex[0],cex[1]]);
+    var exB = ol.proj.toLonLat([cex[2],cex[3]]);
+    return [exA[0], exA[1], exB[0], exB[1]];
+  }
+  function getCenterFromMap() {
+    return ol.proj.toLonLat(map.getView().getCenter());
+  }
 
-      map.setCenter(position, zoom);
-      console.info("map ok " + lat + "," + lon);
+  function getGKUrl(latTL, lonTL, latBR, lonBR) {
+    return "https://api.geokretymap.org/geojson"
+    + "?latTL=" + latTL + "&lonTL=" + lonTL
+    + "&latBR=" + latBR + "&lonBR=" + lonBR
+    + "&limit=500&daysFrom=0&daysTo=-1";
+  }
+
+  function gk() {
+    dev = true;
+    console.info("GK " + dev?"DEV":"PROD");
+    var bounds = getBoundsFromMap();
+    console.info(bounds);
+    // appel de https://api.geokretymap.org/geojson?latTL=45.229224356422&lonTL=5.7898879692337&latBR=45.139241643578&lonBR=5.6622220307663&limit=500&daysFrom=0&daysTo=-1
+    var gkUrl = getGKUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
+    console.info(gkUrl);
+    if (!dev) {
+      $.getJSON( gkUrl, function( data ) {
+        console.info(data);
+      });
     }
+  }
 
-    function changePosition(lat, lon) {
-      map.setCenter(
-        new OpenLayers.LonLat(lon,lat)
-            .transform(fromProjection,toProjection),
-            zoom); // zoom level
+  var pL = document.getElementById("posLabel");
+  function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+      pL.innerHTML = "Geolocation is not supported by this browser.";
     }
-
-    var ph = document.getElementById("pagehead");
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-      } else {
-        ph.innerHTML = "Geolocation is not supported by this browser.";
-      }
-    }
-    function showPosition(position) {
-      lat = position.coords.latitude;
-      lon = position.coords.longitude;
-      ph.innerHTML = "Latitude: " + lat +"<br>Longitude: " + lon;
-      changePosition(lat, lon);
-      console.info("showPosition ok " + lat + "," + lon);
-    }
-
-    openMap(lat, lon);
-    getLocation();
+  }
+  function showPosition(position) {
+    lat = position.coords.latitude;
+    lon = position.coords.longitude;
+    pL.innerHTML = "lat: " + lat +", lon: " + lon;
+    console.info("showPosition ok " + lat + "," + lon);
+  }
 </script>
 </body>
 </html>
