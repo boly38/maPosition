@@ -126,9 +126,10 @@
     $(map.getViewport()).on('mousemove', function (e) {
         var pixel = map.getEventPixel(e.originalEvent);
         var hit = map.forEachFeatureAtPixel(pixel, function (feature, layer) {
-            return true;
+            return feature.getProperties().title;
         });
         if (hit) {
+            _popupMessage(hit);
             jTarget.css("cursor", "pointer");
         } else {
             jTarget.css("cursor", "");
@@ -197,9 +198,8 @@
           featureProjection: 'EPSG:3857'
         }));
 
-        var stroke = new ol.style.Stroke({color: 'black', width: 1});
-        var fill = new ol.style.Fill({color: 'red'});
-        var starStyle = new ol.style.Style({
+
+        var gkStyle = new ol.style.Style({
           image: new ol.style.Icon({
             scale: 0.15,
             opacity: 1,
@@ -208,7 +208,8 @@
         });
         var gkCount = 0;
         gkSource.forEachFeature(function(feat) {
-          feat.setStyle(starStyle);
+          feat.setStyle(gkStyle);
+          feat.set('title',feat.getProperties().popupContent);
           gkCount++;
         });
         if (gkCount > 0) {
@@ -260,8 +261,9 @@
         },
         "type":"Feature",
         "properties":{
+          "icon":wm.icon,
           "code":wm.code,
-          "popupContent":"<b><a href=\"#\" target=\"_blank\">" + wm.title + "</a></b><br/>"
+          "popupContent":"<b><a href=\"http://www.waymarking.com/waymarks/"+ wm.code +"\" target=\"_blank\">" + wm.title + "</a></b><br/>"
           +" Code: " + wm.code + " <br/>"
           +" Description: " + wm.desc + " <br/>"
           +" Type: " + wm.icon
@@ -285,6 +287,17 @@
       }
     }
     return markersLine;
+  }
+
+  function _getWMStyle(icon) {
+    var wmStyle = new ol.style.Style({
+      image: new ol.style.Icon({
+        scale: 0.3,
+        opacity: 1,
+        src: "http://www.waymarking.com/images/logo.gif"
+      })
+    });
+    return wmStyle;
   }
 
   function _wmPage(wlat, wlon, page) {
@@ -312,6 +325,11 @@
                 wmSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
                   featureProjection: 'EPSG:3857'
                 }));
+
+                wmSource.forEachFeature(function(feat) {
+                  feat.setStyle(_getWMStyle(feat.getProperties().icon));
+                  feat.set('title',feat.getProperties().popupContent);
+                });
 
                 var wmLayer = new ol.layer.Vector({
                   source: wmSource
