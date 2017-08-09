@@ -3,9 +3,9 @@
  <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>maPosition</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"/>
 
-  <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
+  <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css"/>
      <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
      <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
      <script src="https://openlayers.org/en/v4.2.0/build/ol.js"></script>
@@ -38,7 +38,9 @@
 
  </head>
 <body>
-  <div id="GKbutton"  class="leftButton"><span onclick="gk()""         title="Voir les G&eacute;oKrets du coin...">GK</span></div>
+
+  <div id="GKbutton"  class="leftButton"><div onclick="gk()"          title="Voir les G&eacute;oKrets du coin...">GK</div></div>
+  <div id="WMbutton"  class="leftButton"><span onclick="wm()"          title="Voir les Waymarks du coin...">WM</span></div>
   <div id="POSbutton" class="leftButton"><span onclick="getLocation()" title="Positionnement par le navigateur">Pos</span></div>
   <div id="GREbutton" class="leftButton"><span onclick="goGre()"       title="Aller à Grenoble">Gre</span></div>
   <div style="position:absolute; left:50px; top:10px; z-index: 99;" id="popup" class="popup"></div>
@@ -63,11 +65,22 @@
     return $( "#popup" );
   }
 
+  function _popupMessage(msg) {
+    _getPopup().html( msg );
+    _getPopup().show();
+  }
+
   function _getLonLatProjection(lat, lon) {
     var myLonLat = [lon, lat]; // caution partner, read on...
     var myLonLatProjection = ol.proj.fromLonLat(myLonLat);
     return myLonLatProjection;
   }
+
+  function _getCenterLonLat() {
+    var curCenter = map.getView().getCenter();
+    return  ol.proj.toLonLat(curCenter);
+  }
+
 
   // https://openlayers.org/en/latest/doc/faq.html
   function openMap(lat, lon) {
@@ -99,8 +112,7 @@
         console.info(feature);
         // document.getElementById("popup").innerHTML = feature.getProperties().popupContent;
         var pcontent = feature.getProperties().popupContent;
-        _getPopup().html( pcontent );
-        _getPopup().show();
+        _popupMessage(pcontent);
         return;
       }
       _getPopup().hide();
@@ -175,6 +187,7 @@
     var gkUrl = getGKUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
     console.info(gkUrl);
     if (!gkDev) {
+      _popupMessage("Chargement de geokrets...");
       $.getJSON( gkUrl, function( data ) {
         console.info(data);
 
@@ -193,9 +206,14 @@
             src: "https://geokretymap.org/images/gk_logo.png"
           })
         });
+        var gkCount = 0;
         gkSource.forEachFeature(function(feat) {
           feat.setStyle(starStyle);
+          gkCount++;
         });
+        if (gkCount > 0) {
+          _popupMessage("" + gkCount + " Géokret(s) de plus");
+        }
 
 
 
@@ -207,24 +225,133 @@
     }
   }
 
+  function corsProxyMe(url) {
+    // var CORSproxy = "https://crossorigin.me/"; // lentissime
+    var CORSproxy = "https://cors-anywhere.herokuapp.com/";
+    return CORSproxy + url;
+  }
+
+  function getWMUrl(cLat, cLon, page) {
+    // return "wmExample.txt";
+    var wmUrl = "http://www.waymarking.com/wm/search.aspx?f=1&lat=" + cLat
+    + "&lon=" + cLon + "&t=6&id=lat:" + cLat + "%20lon:"+ cLon + "&wo=True&r=5&st=2"
+    if (page > 1) {
+      wmUrl = wmUrl + "&p=" + page;
+    }
+    // Grenoble centre page 1 = 25 resultats //
+    // wmUrl = "http://www.waymarking.com/wm/search.aspx?f=1&lat=45.184233&lon=5.726055&t=6&id=lat:45.184233%20lon:5.726055&wo=True&r=5&sg=d071184f-347f-4a82-9d32-b2936cbd8618&st=2";
+    return corsProxyMe(wmUrl);
+
+  }
+
+  function transformToFeature(wmarkers) {
+    var rez = {
+        "type":"FeatureCollection",
+        "features":[] };
+    for(var wmi = 0; wmi < wmarkers.length; wmi++) {
+      var wm = wmarkers[wmi];
+      var f = {
+        "geometry":{
+          "type":"Point",
+          "coordinates":[
+            wm.lng,
+            wm.lat
+          ]
+        },
+        "type":"Feature",
+        "properties":{
+          "code":wm.code,
+          "popupContent":"<b><a href=\"#\" target=\"_blank\">" + wm.title + "</a></b><br/>"
+          +" Code: " + wm.code + " <br/>"
+          +" Description: " + wm.desc + " <br/>"
+          +" Type: " + wm.icon
+        }
+      };
+      rez.features.push(f)
+    }
+    return rez;
+  }
+
+  function _getMarkersLineFromWaymarking(htmlData) {
+    var lines = htmlData.split('\n');
+    // DEBUG // console.info("nb ligne:" + lines.length);
+    var xmMarkersPrefix = "var markers = ";
+    var markersLine = null;
+    for(var line = 0; line < lines.length; line++) {
+      var curLine = lines[line];
+      if (curLine.substring(0,xmMarkersPrefix.length) == xmMarkersPrefix) {
+        // DEBUG // console.info(curLine);
+        markersLine = curLine;
+      }
+    }
+    return markersLine;
+  }
+
+  function _wmPage(wlat, wlon, page) {
+        console.info("WM " + (wmDev?"DEV":"PROD"));
+        var wmUrl = getWMUrl(wlat, wlon, page);
+        console.info(wmUrl);
+        if (!wmDev) {
+          _popupMessage("Chargement de waymarks...");
+          $.ajax({
+              dataType: "txt",
+              url: wmUrl,
+              error: function (data) {
+                console.info(data);
+                var markersLine = _getMarkersLineFromWaymarking(data.responseText)
+                if (markersLine == null) {
+                  console.info("impossible de charger les waymarks");
+                  return 0;
+                }
+                eval(markersLine);
+                console.info(markers);
+                var feat = transformToFeature(markers);
+                console.info(feat);
+                var wmSource = new ol.source.Vector({});
+                wmSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
+                  featureProjection: 'EPSG:3857'
+                }));
+
+                var wmLayer = new ol.layer.Vector({
+                  source: wmSource
+                });
+                map.addLayer(wmLayer);
+                wmCount = wmCount + markers.length;
+                if (markers.length == 25 && page < 10) {
+                  _wmPage(wlat, wlon, page+1);
+                } else {
+                  _popupMessage("" + wmCount + " waymark(s) de plus!");
+                }
+              }
+          });
+        }
+  }
+  var wmCount = 0;
+
+  function wm() {
+    wmDev = false;
+    var curLonLat = _getCenterLonLat();
+    wmCount = 0;
+    _wmPage(curLonLat[1], curLonLat[0], 1);
+  }
+
   function getLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPosition);
     } else {
-      _getPopup().html( "Geolocation is not supported by this browser." );
-      _getPopup().show();
+      _popupMessage("Geolocation is not supported by this browser.");
     }
   }
   function showPosition(position) {
     lat = position.coords.latitude;
     lon = position.coords.longitude;
-    _getPopup().html("lat: " + lat +", lon: " + lon);
-    _getPopup().show();
+    _popupMessage("lat: " + lat +", lon: " + lon),
     console.info("showPosition ok " + lat + "," + lon);
     map.getView().setCenter( _getLonLatProjection(lat, lon) );
   }
   function goGre() {
     map.getView().setCenter( _getLonLatProjection(latGRE, lonGRE) );
+    _popupMessage("Bienvenue à Grenoble!");
   }
   _getPopup().hide("");
   openMap(latGRE, lonGRE);

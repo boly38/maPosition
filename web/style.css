@@ -41,7 +41,7 @@ p {
   padding: 10px;
   border: 2px solid grey;
   background-color: #FBECD7;
-  font-size: 70%;
+  font-size: 60%;
 }
 
 /* Popup container - can be anything you want
@@ -90,7 +90,7 @@ p {
   height: 15px;
 }
 
-#POSbutton {
+#WMbutton {
   position:absolute;
   left:10px;
   top:90px;
@@ -99,10 +99,19 @@ p {
   height: 15px;
 }
 
-#GREbutton {
+#POSbutton {
   position:absolute;
   left:10px;
   top:110px;
+  z-index: 99;
+  width: 25px;
+  height: 15px;
+}
+
+#GREbutton {
+  position:absolute;
+  left:10px;
+  top:150px;
   z-index: 99;
   width: 25px;
   height: 15px;
