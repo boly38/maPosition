@@ -4,10 +4,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>maPosition</title>
   <link rel="stylesheet" href="style.css">
-  <script
-  src="http://code.jquery.com/jquery-3.2.1.js"
-  integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
-  crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="https://openlayers.org/en/v4.2.0/css/ol.css" type="text/css">
      <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
@@ -34,19 +30,28 @@
          outline: #4A74A8 solid 0.15em;
        }
      </style>
+
+     <script
+     src="http://code.jquery.com/jquery-3.2.1.js"
+     integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+     crossorigin="anonymous"></script>
+
  </head>
 <body>
-  <div style="position:absolute; left:300px; top:10px; z-index: 99;"><button onclick="gk()">GK</button></div>
-  <div style="position:absolute; left:350px; top:10px; z-index: 99;"><button onclick="getLocation()">Pos</button></div>
+  <div id="GKbutton"  class="leftButton"><span onclick="gk()""         title="Voir les G&eacute;oKrets du coin...">GK</span></div>
+  <div id="POSbutton" class="leftButton"><span onclick="getLocation()" title="Positionnement par le navigateur">Pos</span></div>
+  <div id="GREbutton" class="leftButton"><span onclick="goGre()"       title="Aller à Grenoble">Gre</span></div>
+  <div style="position:absolute; left:50px; top:10px; z-index: 99;" id="popup" class="popup"></div>
   <a class="skiplink" href="#map">Go to map</a>
   <div id="map" class="map" tabindex="0"></div>
+  <!--
   <button id="zoom-out">Zoom out</button>
   <button id="zoom-in">Zoom in</button>
-  <div style="position:absolute; left:20px; top:500px; z-index: 99;" id="posLabel"><!--position Label--></div>
+-->
 <script>
   // Grenoble
-  var lat= 45.184233;
-  var lon=  5.726055;
+  var latGRE= 45.184233;
+  var lonGRE=  5.726055;
   var zoom = 12;
   var map;
 
@@ -54,10 +59,18 @@
   // var fromProjection = new ol.Projection("EPSG:4326");   // Transform from WGS 1984
   // var toProjection   = new ol.Projection("EPSG:900913"); // to Spherical Mercator Projection
 
+  function _getPopup() {
+    return $( "#popup" );
+  }
+
+  function _getLonLatProjection(lat, lon) {
+    var myLonLat = [lon, lat]; // caution partner, read on...
+    var myLonLatProjection = ol.proj.fromLonLat(myLonLat);
+    return myLonLatProjection;
+  }
+
+  // https://openlayers.org/en/latest/doc/faq.html
   function openMap(lat, lon) {
-    // https://openlayers.org/en/latest/doc/faq.html
-    var schladming = [lon, lat]; // caution partner, read on...
-    var schladmingWebMercator = ol.proj.fromLonLat(schladming);
     map = new ol.Map({
       layers: [
         new ol.layer.Tile({
@@ -66,17 +79,53 @@
       ],
       target: 'map',
       controls: ol.control.defaults({
-        attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+        attributionOptions: ({
           collapsible: false
         })
       }),
       view: new ol.View({
-        center: schladmingWebMercator, // [0, 0],
+        center: _getLonLatProjection(lat, lon),
         zoom: zoom
       })
     });
+
+    // display on click
+    map.on('click', function(evt) {
+      var feature = map.forEachFeatureAtPixel(evt.pixel,
+          function(feature, layer) {
+            return feature;
+          });
+      if (feature) {
+        console.info(feature);
+        // document.getElementById("popup").innerHTML = feature.getProperties().popupContent;
+        var pcontent = feature.getProperties().popupContent;
+        _getPopup().html( pcontent );
+        _getPopup().show();
+        return;
+      }
+      _getPopup().hide();
+    });
+
+    // change mouse cursor when over marker
+    // https://stackoverflow.com/questions/26022029/how-to-change-the-cursor-on-hover-in-openlayers-3
+    var target = map.getTarget();
+    var jTarget = typeof target === "string" ? $("#" + target) : $(target);
+    // change mouse cursor when over marker
+    $(map.getViewport()).on('mousemove', function (e) {
+        var pixel = map.getEventPixel(e.originalEvent);
+        var hit = map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+            return true;
+        });
+        if (hit) {
+            jTarget.css("cursor", "pointer");
+        } else {
+            jTarget.css("cursor", "");
+        }
+    });
+
   }
 
+/*
   document.getElementById('zoom-out').onclick = function() {
     var view = map.getView();
     var zoom = view.getZoom();
@@ -88,9 +137,8 @@
     var zoom = view.getZoom();
     view.setZoom(zoom + 1);
   };
+*/
 
-  openMap(lat, lon);
-  // getLocation();
   function getBoundsFromMap() {
     var cex = map.getView().calculateExtent(map.getSize());
     var exA = ol.proj.toLonLat([cex[0],cex[1]]);
@@ -101,7 +149,17 @@
     return ol.proj.toLonLat(map.getView().getCenter());
   }
 
+  function assumeNumber(item, itemDesc) {
+    if (isNaN(item)) {
+      throw "Attendu float pour " + itemDesc;
+    }
+  }
+
   function getGKUrl(latTL, lonTL, latBR, lonBR) {
+    assumeNumber(latTL, "GKUrl::latTL");
+    assumeNumber(lonTL, "GKUrl::lonTL");
+    assumeNumber(latBR, "GKUrl::latBR");
+    assumeNumber(lonBR, "GKUrl::lonBR");
     return "https://api.geokretymap.org/geojson"
     + "?latTL=" + latTL + "&lonTL=" + lonTL
     + "&latBR=" + latBR + "&lonBR=" + lonBR
@@ -109,44 +167,68 @@
   }
 
   function gk() {
-    dev = false;
-    console.info("GK " + (dev?"DEV":"PROD"));
+    gkDev = false;
+    console.info("GK " + (gkDev?"DEV":"PROD"));
     var bounds = getBoundsFromMap();
     console.info(bounds);
     // appel de https://api.geokretymap.org/geojson?latTL=45.229224356422&lonTL=5.7898879692337&latBR=45.139241643578&lonBR=5.6622220307663&limit=500&daysFrom=0&daysTo=-1
     var gkUrl = getGKUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
     console.info(gkUrl);
-    if (!dev) {
+    if (!gkDev) {
       $.getJSON( gkUrl, function( data ) {
         console.info(data);
+
 
         var gkSource = new ol.source.Vector({});
         gkSource.addFeatures((new ol.format.GeoJSON()).readFeatures(data,{
           featureProjection: 'EPSG:3857'
         }));
+
+        var stroke = new ol.style.Stroke({color: 'black', width: 1});
+        var fill = new ol.style.Fill({color: 'red'});
+        var starStyle = new ol.style.Style({
+          image: new ol.style.Icon({
+            scale: 0.15,
+            opacity: 1,
+            src: "https://geokretymap.org/images/gk_logo.png"
+          })
+        });
+        gkSource.forEachFeature(function(feat) {
+          feat.setStyle(starStyle);
+        });
+
+
+
         var gkLayer = new ol.layer.Vector({
           source: gkSource
         });
         map.addLayer(gkLayer);
-        // todo: popup + layer remove
       });
     }
   }
 
-  var pL = document.getElementById("posLabel");
   function getLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPosition);
     } else {
-      pL.innerHTML = "Geolocation is not supported by this browser.";
+      _getPopup().html( "Geolocation is not supported by this browser." );
+      _getPopup().show();
     }
   }
   function showPosition(position) {
     lat = position.coords.latitude;
     lon = position.coords.longitude;
-    pL.innerHTML = "lat: " + lat +", lon: " + lon;
+    _getPopup().html("lat: " + lat +", lon: " + lon);
+    _getPopup().show();
     console.info("showPosition ok " + lat + "," + lon);
+    map.getView().setCenter( _getLonLatProjection(lat, lon) );
   }
+  function goGre() {
+    map.getView().setCenter( _getLonLatProjection(latGRE, lonGRE) );
+  }
+  _getPopup().hide("");
+  openMap(latGRE, lonGRE);
+
 </script>
 </body>
 </html>

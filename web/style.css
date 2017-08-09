@@ -36,3 +36,74 @@ p {
   margin: 0;
   padding: 0 0 1em 0;
 }
+
+#popup {
+  padding: 10px;
+  border: 2px solid grey;
+  background-color: #FBECD7;
+  font-size: 70%;
+}
+
+/* Popup container - can be anything you want
+   http://sohtanaka.developpez.com/tutoriels/javascript/creez-fenetre-modale-avec-css-et-jquery/
+*/
+.popup {
+  background: #fff;
+	padding: 20px;
+	border: 20px solid #ddd;
+	float: left;
+	font-size: 1.2em;
+	position: fixed;
+	top: 50%; left: 50%;
+	z-index: 99999;
+	/*--Les différentes définitions de Box Shadow en CSS3--*/
+	-webkit-box-shadow: 0px 0px 20px #000;
+	-moz-box-shadow: 0px 0px 20px #000;
+	box-shadow: 0px 0px 20px #000;
+	/*--Coins arrondis en CSS3--*/
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.leftButton {
+  cursor: pointer;
+  display: block;
+  margin: 1px;
+  padding: 0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  background-color: rgba(0,60,136,.5);
+  border: none;
+  border-radius: 2px 2px 0 0;
+}
+
+#GKbutton {
+  position:absolute;
+  left:10px;
+  top:70px;
+  z-index: 99;
+  width: 25px;
+  height: 15px;
+}
+
+#POSbutton {
+  position:absolute;
+  left:10px;
+  top:90px;
+  z-index: 99;
+  width: 25px;
+  height: 15px;
+}
+
+#GREbutton {
+  position:absolute;
+  left:10px;
+  top:110px;
+  z-index: 99;
+  width: 25px;
+  height: 15px;
+}
