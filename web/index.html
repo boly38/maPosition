@@ -32,7 +32,7 @@
      </style>
 
      <script
-     src="http://code.jquery.com/jquery-3.2.1.js"
+     src="https://code.jquery.com/jquery-3.2.1.js"
      integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
      crossorigin="anonymous"></script>
 
@@ -231,10 +231,10 @@
     return CORSproxy + url;
   }
 
-  function getWMUrl(cLat, cLon, page) {
+  function getWMUrl(rayonKm, cLat, cLon, page) {
     // return "wmExample.txt";
     var wmUrl = "http://www.waymarking.com/wm/search.aspx?f=1&lat=" + cLat
-    + "&lon=" + cLon + "&t=6&id=lat:" + cLat + "%20lon:"+ cLon + "&wo=True&r=5&st=2"
+    + "&lon=" + cLon + "&t=6&id=lat:" + cLat + "%20lon:"+ cLon + "&wo=True&r="+rayonKm+"&st=2"
     if (page > 1) {
       wmUrl = wmUrl + "&p=" + page;
     }
@@ -289,10 +289,11 @@
 
   function _wmPage(wlat, wlon, page) {
         console.info("WM " + (wmDev?"DEV":"PROD"));
-        var wmUrl = getWMUrl(wlat, wlon, page);
+        var rayonKm = 10;
+        var wmUrl = getWMUrl(rayonKm, wlat, wlon, page);
         console.info(wmUrl);
         if (!wmDev) {
-          _popupMessage("Chargement de waymarks...");
+          _popupMessage("Chargement de waymarks " + rayonKm + "km autour du centre (page" + page + ")...");
           $.ajax({
               dataType: "txt",
               url: wmUrl,
@@ -318,6 +319,7 @@
                 map.addLayer(wmLayer);
                 wmCount = wmCount + markers.length;
                 if (markers.length == 25 && page < 10) {
+                  _popupMessage("" + markers.length + " waymark(s) de plus! (page" + page + ")");
                   _wmPage(wlat, wlon, page+1);
                 } else {
                   _popupMessage("" + wmCount + " waymark(s) de plus!");
