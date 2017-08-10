@@ -37,6 +37,5 @@ depuis une position et une distance en KM:
 * lister les Munzees (merci à [labs-munzee](https://github.com/CartoDB/labs-munzee/))
 
 ## Possibles évolutions
-* ajouter des caches
-* ajouter d'autres POI
-* ajouter un fond de carte
+cf. [wiki](https://github.com/boly38/maPosition/wiki)
+
