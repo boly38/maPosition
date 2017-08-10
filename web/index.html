@@ -488,7 +488,19 @@
     map.getView().setCenter( _getLonLatProjection(latGRE, lonGRE) );
     _popupMessage("Bienvenue à Grenoble!");
   }
+  /**
+    * permet de positionner un environnement à partir des attributs de l'url
+    */
+  function _preparam() {
+    var url = new URL(window.location.href);
+    var mu = url.searchParams.get("mzuser");
+    var mt = url.searchParams.get("mztoken");
+    if (mu == undefined || mt == undefined) { return; }
+    mzUser = mu; mzToken = mt
+  }
+
   _getPopup().hide("");
+  _preparam();
   openMap(latGRE, lonGRE);
 
 </script>
