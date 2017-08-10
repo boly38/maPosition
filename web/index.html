@@ -39,8 +39,9 @@
  </head>
 <body>
 
-  <div id="GKbutton"  class="leftButton"><div onclick="gk()"          title="Voir les G&eacute;oKrets du coin...">GK</div></div>
-  <div id="WMbutton"  class="leftButton"><span onclick="wm()"          title="Voir les Waymarks du coin...">WM</span></div>
+  <div id="GKbutton"  class="leftButton"><div onclick="gk()"          title="Voir les G&eacute;oKrets ...">GK</div></div>
+  <div id="WMbutton"  class="leftButton"><span onclick="wm()"          title="Voir les Waymarks (10k autour du centre) ...">WM</span></div>
+  <div id="MZbutton"  class="leftButton"><span onclick="mz()"          title="Voir les Munzees...">MZ</span></div>
   <div id="POSbutton" class="leftButton"><span onclick="getLocation()" title="Positionnement par le navigateur">Pos</span></div>
   <div id="GREbutton" class="leftButton"><span onclick="goGre()"       title="Aller à Grenoble">Gre</span></div>
   <div style="position:absolute; left:50px; top:10px; z-index: 99;" id="popup" class="popup"></div>
@@ -56,6 +57,8 @@
   var lonGRE=  5.726055;
   var zoom = 12;
   var map;
+  var mzUser = null;
+  var mzToken = null;
 
 
   // var fromProjection = new ol.Projection("EPSG:4326");   // Transform from WGS 1984
@@ -187,43 +190,156 @@
     // appel de https://api.geokretymap.org/geojson?latTL=45.229224356422&lonTL=5.7898879692337&latBR=45.139241643578&lonBR=5.6622220307663&limit=500&daysFrom=0&daysTo=-1
     var gkUrl = getGKUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
     console.info(gkUrl);
-    if (!gkDev) {
-      _popupMessage("Chargement de geokrets...");
-      $.getJSON( gkUrl, function( data ) {
-        console.info(data);
+    if (gkDev) { return; }
+    _popupMessage("Chargement de geokrets...");
+    $.getJSON( gkUrl, function( data ) {
+      console.info(data);
 
 
-        var gkSource = new ol.source.Vector({});
-        gkSource.addFeatures((new ol.format.GeoJSON()).readFeatures(data,{
-          featureProjection: 'EPSG:3857'
-        }));
+      var gkSource = new ol.source.Vector({});
+      gkSource.addFeatures((new ol.format.GeoJSON()).readFeatures(data,{
+        featureProjection: 'EPSG:3857'
+      }));
 
 
-        var gkStyle = new ol.style.Style({
-          image: new ol.style.Icon({
-            scale: 0.15,
-            opacity: 1,
-            src: "https://geokretymap.org/images/gk_logo.png"
-          })
-        });
-        var gkCount = 0;
-        gkSource.forEachFeature(function(feat) {
-          feat.setStyle(gkStyle);
-          feat.set('title',feat.getProperties().popupContent);
-          gkCount++;
-        });
-        if (gkCount > 0) {
-          _popupMessage("" + gkCount + " Géokret(s) de plus");
-        }
-
-
-
-        var gkLayer = new ol.layer.Vector({
-          source: gkSource
-        });
-        map.addLayer(gkLayer);
+      var gkStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+          scale: 0.15,
+          opacity: 1,
+          src: "https://geokretymap.org/images/gk_logo.png"
+        })
       });
+      var gkCount = 0;
+      gkSource.forEachFeature(function(feat) {
+        feat.setStyle(gkStyle);
+        feat.set('title',feat.getProperties().popupContent);
+        gkCount++;
+      });
+      if (gkCount > 0) {
+        _popupMessage("" + gkCount + " Géokret(s) de plus");
+      }
+
+
+
+      var gkLayer = new ol.layer.Vector({
+        source: gkSource
+      });
+      map.addLayer(gkLayer);
+    });
+  }
+
+  function getMZUrl(latTL, lonTL, latBR, lonBR) {
+    assumeNumber(latTL, "MZUrl::latTL");
+    assumeNumber(lonTL, "MZUrl::lonTL");
+    assumeNumber(latBR, "MZUrl::latBR");
+    assumeNumber(lonBR, "MZUrl::lonBR");
+    return "https://api.munzee.com/map/cartodb"
+    + "?username=" + mzUser
+    + "&mhq_token=" + mzToken
+    + "&longitude1=" + lonTL
+    + "&latitude1=" + latBR
+    + "&longitude2=" + lonBR
+    + "&latitude2=" + latTL;
+  }
+
+
+  function mztransformToFeature(mzdata) {
+    var rez = {
+        "type":"FeatureCollection",
+        "features":[] };
+    for(var mzi = 0; mzi < mzdata.length; mzi++) {
+      var mz = mzdata[mzi];
+      var f = {
+        "geometry":{
+          "type":"Point",
+          "coordinates":[
+            parseFloat(mz.longitude),
+            parseFloat(mz.latitude)
+          ]
+        },
+        "type":"Feature",
+        "properties":{
+          "munzee_id":mz.munzee_id,
+          "munzee_image":mz.pin_image,
+          "popupContent":"<b>Munzee #" + mz.munzee_id + "</b>"
+        }
+      };
+      rez.features.push(f)
     }
+    return rez;
+  }
+
+  function _getMZStyle(icon) {
+    var imgSrc = "https://munzee.global.ssl.fastly.net/images/icon_256.png";
+    if (icon != undefined) {
+      imgSrc = "https://munzee.global.ssl.fastly.net/images/pins/" + icon;
+    }
+    var mzStyle = new ol.style.Style({
+      image: new ol.style.Icon({
+        scale: 0.25,
+        opacity: 1,
+        src: imgSrc
+      })
+    });
+    return mzStyle;
+  }
+
+  function mz() {
+    mzDev = false;
+    if (mzUser == null) {
+      if (confirm("Positionner un token Munzee ?") != true) {
+        return;
+      }
+      var mymzToken = prompt("Munzee token");
+      if (mymzToken == null || mymzToken == "") { // cancel
+          mzUser = null;
+          return;
+      } else {
+        mzToken = mymzToken;
+      }
+      var mymzUser = prompt("Munzee user");
+      if (mymzUser == null || mymzUser == "") { // cancel
+          mzUser = null;
+          return;
+      } else {
+        mzUser = mymzUser;
+      }
+    }
+    console.info("MZ " + (mzDev?"DEV":"PROD"));
+    var bounds = getBoundsFromMap();
+    console.info(bounds);
+    // appel de https://api.munzee.com/map/cartodb?username=coolant&mhq_token=c4RtoDb847HvvG&longitude1=5.7898879692337&latitude1=45.139241643578&longitude2=5.6622220307663&latitude2=45.229224356422
+    var mzUrl = getMZUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
+    console.info(mzUrl);
+    if (mzDev) { return; }
+    _popupMessage("Chargement de Munzee...");
+    $.getJSON( mzUrl, function( data ) {
+      console.info(data);
+      if (data == undefined || data.data == undefined || !data.status_code == 200) {
+        _popupMessage("Chargement impossible des Munzees!");
+        return;
+      }
+      var feat = mztransformToFeature(data.data);
+      console.info(feat);
+      var mzSource = new ol.source.Vector({});
+      mzSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
+        featureProjection: 'EPSG:3857'
+      }));
+
+      var mzCount = 0;
+      mzSource.forEachFeature(function(feat) {
+        var mzImg = feat.getProperties().munzee_image;
+        feat.setStyle(_getMZStyle(mzImg));
+        feat.set('title',feat.getProperties().popupContent);
+        mzCount++;
+      });
+
+      var mzLayer = new ol.layer.Vector({
+        source: mzSource
+      });
+      map.addLayer(mzLayer);
+      _popupMessage("" + mzCount + " munzee(s) de plus!");
+    });
   }
 
   function corsProxyMe(url) {
@@ -245,7 +361,7 @@
 
   }
 
-  function transformToFeature(wmarkers) {
+  function wmtransformToFeature(wmarkers) {
     var rez = {
         "type":"FeatureCollection",
         "features":[] };
@@ -305,46 +421,45 @@
         var rayonKm = 10;
         var wmUrl = getWMUrl(rayonKm, wlat, wlon, page);
         console.info(wmUrl);
-        if (!wmDev) {
-          _popupMessage("Chargement de waymarks " + rayonKm + "km autour du centre (page" + page + ")...");
-          $.ajax({
-              dataType: "txt",
-              url: wmUrl,
-              error: function (data) {
-                console.info(data);
-                var markersLine = _getMarkersLineFromWaymarking(data.responseText)
-                if (markersLine == null) {
-                  console.info("impossible de charger les waymarks");
-                  return 0;
-                }
-                eval(markersLine);
-                console.info(markers);
-                var feat = transformToFeature(markers);
-                console.info(feat);
-                var wmSource = new ol.source.Vector({});
-                wmSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
-                  featureProjection: 'EPSG:3857'
-                }));
-
-                wmSource.forEachFeature(function(feat) {
-                  feat.setStyle(_getWMStyle(feat.getProperties().icon));
-                  feat.set('title',feat.getProperties().popupContent);
-                });
-
-                var wmLayer = new ol.layer.Vector({
-                  source: wmSource
-                });
-                map.addLayer(wmLayer);
-                wmCount = wmCount + markers.length;
-                if (markers.length == 25 && page < 10) {
-                  _popupMessage("" + markers.length + " waymark(s) de plus! (page" + page + ")");
-                  _wmPage(wlat, wlon, page+1);
-                } else {
-                  _popupMessage("" + wmCount + " waymark(s) de plus!");
-                }
+        if (wmDev) { return; }
+        _popupMessage("Chargement de waymarks " + rayonKm + "km autour du centre (page" + page + ")...");
+        $.ajax({
+            dataType: "txt",
+            url: wmUrl,
+            error: function (data) {
+              console.info(data);
+              var markersLine = _getMarkersLineFromWaymarking(data.responseText)
+              if (markersLine == null) {
+                console.info("impossible de charger les waymarks");
+                return 0;
               }
-          });
-        }
+              eval(markersLine);
+              console.info(markers);
+              var feat = wmtransformToFeature(markers);
+              console.info(feat);
+              var wmSource = new ol.source.Vector({});
+              wmSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
+                featureProjection: 'EPSG:3857'
+              }));
+
+              wmSource.forEachFeature(function(feat) {
+                feat.setStyle(_getWMStyle(feat.getProperties().icon));
+                feat.set('title',feat.getProperties().popupContent);
+              });
+
+              var wmLayer = new ol.layer.Vector({
+                source: wmSource
+              });
+              map.addLayer(wmLayer);
+              wmCount = wmCount + markers.length;
+              if (markers.length == 25 && page < 10) {
+                _popupMessage("" + markers.length + " waymark(s) de plus! (page" + page + ")");
+                _wmPage(wlat, wlon, page+1);
+              } else {
+                _popupMessage("" + wmCount + " waymark(s) de plus!");
+              }
+            }
+        });
   }
   var wmCount = 0;
 

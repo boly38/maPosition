@@ -99,7 +99,7 @@ p {
   height: 15px;
 }
 
-#POSbutton {
+#MZbutton {
   position:absolute;
   left:10px;
   top:110px;
@@ -108,10 +108,19 @@ p {
   height: 15px;
 }
 
+#POSbutton {
+  position:absolute;
+  left:10px;
+  top:130px;
+  z-index: 99;
+  width: 25px;
+  height: 15px;
+}
+
 #GREbutton {
   position:absolute;
   left:10px;
-  top:150px;
+  top:170px;
   z-index: 99;
   width: 25px;
   height: 15px;
