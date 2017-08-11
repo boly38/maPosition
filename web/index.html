@@ -39,11 +39,11 @@
  </head>
 <body>
 
-  <div id="GKbutton"  class="leftButton"><div onclick="gk()"          title="Voir les G&eacute;oKrets ...">GK</div></div>
-  <div id="WMbutton"  class="leftButton"><span onclick="wm()"          title="Voir les Waymarks (10k autour du centre) ...">WM</span></div>
-  <div id="MZbutton"  class="leftButton"><span onclick="mz()"          title="Voir les Munzees...">MZ</span></div>
-  <div id="POSbutton" class="leftButton"><span onclick="getLocation()" title="Positionnement par le navigateur">Pos</span></div>
-  <div id="GREbutton" class="leftButton"><span onclick="goGre()"       title="Aller à Grenoble">Gre</span></div>
+  <div id="GKbutton"  class="olButton"><button class="leftButton" onclick="gk()"          title="Voir les G&eacute;oKrets ...">GK</button></div>
+  <div id="WMbutton"  class="olButton"><button class="leftButton" onclick="wm()"          title="Voir les Waymarks (10k autour du centre) ...">WM</button></div>
+  <div id="MZbutton"  class="olButton"><button class="leftButton" onclick="mz()"          title="Voir les Munzees...">MZ</button></div>
+  <div id="POSbutton" class="olButton"><button class="leftButton" onclick="getLocation()" title="Positionnement par le navigateur">Pos</button></div>
+  <div id="GREbutton" class="olButton"><button class="leftButton" onclick="goGre()"       title="Aller à Grenoble">Gre</button></div>
   <div style="position:absolute; left:50px; top:10px; z-index: 99;" id="popup" class="popup"></div>
   <a class="skiplink" href="#map">Go to map</a>
   <div id="map" class="map" tabindex="0"></div>
@@ -132,7 +132,7 @@
             return feature.getProperties().title;
         });
         if (hit) {
-            _popupMessage(hit);
+            //_popupMessage(hit);
             jTarget.css("cursor", "pointer");
         } else {
             jTarget.css("cursor", "");

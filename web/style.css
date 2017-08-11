@@ -66,62 +66,56 @@ p {
 	border-radius: 10px;
 }
 
+.olButton {
+  position:absolute;
+  z-index: 99;
+  left:10px;
+  border: none;
+}
+
 .leftButton {
-  cursor: pointer;
-  display: block;
   margin: 1px;
-  padding: 0;
+  padding: 4px;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
   text-decoration: none;
   text-align: center;
-  background-color: rgba(0,60,136,.5);
   border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  background-color: rgba(0,60,136,.5);
   border-radius: 2px 2px 0 0;
+  cursor: pointer;
 }
 
 #GKbutton {
-  position:absolute;
-  left:10px;
   top:70px;
-  z-index: 99;
-  width: 25px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
 }
 
 #WMbutton {
-  position:absolute;
-  left:10px;
-  top:90px;
-  z-index: 99;
-  width: 25px;
-  height: 15px;
+  top:100px;
+  width: 20px;
+  height: 20px;
 }
 
 #MZbutton {
-  position:absolute;
-  left:10px;
-  top:110px;
-  z-index: 99;
-  width: 25px;
-  height: 15px;
+  top:130px;
+  width: 20px;
+  height: 20px;
 }
 
 #POSbutton {
-  position:absolute;
-  left:10px;
-  top:130px;
-  z-index: 99;
-  width: 25px;
-  height: 15px;
+  top:160px;
+  width: 20px;
+  height: 20px;
 }
 
 #GREbutton {
-  position:absolute;
-  left:10px;
-  top:170px;
-  z-index: 99;
-  width: 25px;
-  height: 15px;
+  top:190px;
+  width: 20px;
+  height: 20px;
 }
