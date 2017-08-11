@@ -24,8 +24,8 @@ Des fonctions peuvent être activées via l'environnement (utiliser `setEnv.sh`)
 * `. setEnv.private.sh`
 
 Web:
-* service le dossier web/ par apache
-* rendrez-vous sur index.html (en https si vous ne voulez pas que ggchrome bloque la localisation)
+* servir le dossier web/ par apache
+* rendez-vous sur index.html (en https si vous ne voulez pas que ggchrome bloque la localisation)
 
 
 ## Fonctions
@@ -34,8 +34,8 @@ Web:
 depuis une position et une distance en KM:
 * lister les Géokrets (merci à [geokretymap](https://geokretymap.org/))
 * lister les Waymarks (merci à [waymarking](https://waymarking.com) et à [waymarking-lib (Ruby)](https://github.com/pkubiak/waymarking-lib/blob/master/lib/waymarking/search_query.rb) )
+* lister les FallingFruit (merci à [fallingfruit.org](https://fallingfruit.org/))
 * lister les Munzees (merci à [labs-munzee](https://github.com/CartoDB/labs-munzee/))
 
 ## Possibles évolutions
 cf. [wiki](https://github.com/boly38/maPosition/wiki)
-

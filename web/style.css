@@ -88,34 +88,30 @@ p {
   background-color: rgba(0,60,136,.5);
   border-radius: 2px 2px 0 0;
   cursor: pointer;
+  width: 30px;
+  height: 20px;
 }
 
 #GKbutton {
   top:70px;
-  width: 20px;
-  height: 20px;
 }
 
 #WMbutton {
   top:100px;
-  width: 20px;
-  height: 20px;
+}
+
+#FFbutton {
+  top:130px;
 }
 
 #MZbutton {
-  top:130px;
-  width: 20px;
-  height: 20px;
+  top:160px;
 }
 
 #POSbutton {
-  top:160px;
-  width: 20px;
-  height: 20px;
+  top:190px;
 }
 
 #GREbutton {
-  top:190px;
-  width: 20px;
-  height: 20px;
+  top:220px;
 }

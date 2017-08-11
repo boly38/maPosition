@@ -41,6 +41,7 @@
 
   <div id="GKbutton"  class="olButton"><button class="leftButton" onclick="gk()"          title="Voir les G&eacute;oKrets ...">GK</button></div>
   <div id="WMbutton"  class="olButton"><button class="leftButton" onclick="wm()"          title="Voir les Waymarks (10k autour du centre) ...">WM</button></div>
+  <div id="FFbutton"  class="olButton"><button class="leftButton" onclick="ff()"          title="Voir les Falling Fruit...">FF</button></div>
   <div id="MZbutton"  class="olButton"><button class="leftButton" onclick="mz()"          title="Voir les Munzees...">MZ</button></div>
   <div id="POSbutton" class="olButton"><button class="leftButton" onclick="getLocation()" title="Positionnement par le navigateur">Pos</button></div>
   <div id="GREbutton" class="olButton"><button class="leftButton" onclick="goGre()"       title="Aller à Grenoble">Gre</button></div>
@@ -228,6 +229,98 @@
     });
   }
 
+  function geFFUrl(latTL, lonTL, latBR, lonBR) {
+    assumeNumber(latTL, "FFUrl::latTL");
+    assumeNumber(lonTL, "FFUrl::lonTL");
+    assumeNumber(latBR, "FFUrl::latBR");
+    assumeNumber(lonBR, "FFUrl::lonBR");
+    return "https://fallingfruit.org/api/0.2/locations.json?api_key=EEQRBBUB&locale=fr&muni=1"
+    + "&nelat=" + latTL
+    + "&nelng=" + lonTL
+    + "&swlat=" + latBR
+    + "&swlng=" + lonBR
+    + "&t=&c=forager,freegan";
+  }
+
+
+  function fftransformToFeature(ffdata) {
+    var ffpoi = ffdata;
+    var rez = {
+        "type":"FeatureCollection",
+        "features":[] };
+    for(var ffi = 2; ffi < ffpoi.length; ffi++) { // resistance!
+      var ff = ffpoi[ffi];
+      var popupContent = "<b><a href=\"https://fallingfruit.org/locations/" + ff.id + "\">Falling Fruit " + ff.type_names[0] + "</a></b><br>"
+      + "<ul>"
+      if (ff.author != null) {
+        popupContent = popupContent + "<li>Auteur: " + ff.author + "</li>";
+      }
+      if (ff.description != null) {
+        popupContent = popupContent + "<li>Description: " + ff.description + "</li>";
+      }
+      var f = {
+        "geometry":{
+          "type":"Point",
+          "coordinates":[
+            ff.lng,
+            ff.lat
+          ]
+        },
+        "type":"Feature",
+        "properties":{
+          "ff_id":ff.id,
+          "author":ff.author,
+          "type_ids":ff.type_ids,
+          "type_names":ff.type_names,
+          "unverified":ff.unverified,
+          "description":ff.description,
+          "popupContent": popupContent
+        }
+      };
+      rez.features.push(f);
+    }
+    return rez;
+  }
+
+  function ff() {
+    ffDev = false;
+    console.info("FF " + (ffDev?"DEV":"PROD"));
+    var bounds = getBoundsFromMap();
+    console.info(bounds);
+    // appel de https://fallingfruit.org/api/0.2/locations.json?api_key=EEQRBBUB&locale=fr&muni=1&nelat=45.22382986242207&nelng=5.894687523193397&swlat=45.181617377057194&swlng=5.620029320068397&t=&c=forager,freegan
+    var ffUrl = geFFUrl(bounds[3], bounds[2], bounds[1], bounds[0]);
+    console.info(ffUrl);
+    if (ffDev) { return; }
+    _popupMessage("Chargement de FallingFruit...");
+    $.getJSON( ffUrl, function( data ) {
+      console.info(data);
+      if (data == undefined || data.length < 3) {
+        _popupMessage("Chargement impossible de FallingFruit, zoomez plus!");
+        return;
+      }
+      var feat = fftransformToFeature(data);
+      console.info(feat);
+      var ffSource = new ol.source.Vector({});
+      ffSource.addFeatures((new ol.format.GeoJSON()).readFeatures(feat,{
+        featureProjection: 'EPSG:3857'
+      }));
+
+      var ffCount = 0;
+      ffSource.forEachFeature(function(feat) {
+        var ffImg = "http://icon-icons.com/icons2/881/PNG/48/Pear_icon-icons.com_68711.png";
+        feat.setStyle(_getStyleFromImageUrl(ffImg, 0.7, 1));
+        feat.set('title',feat.getProperties().popupContent);
+        ffCount++;
+      });
+
+      var ffLayer = new ol.layer.Vector({
+        source: ffSource
+      });
+      map.addLayer(ffLayer);
+      _popupMessage("" + ffCount + " FallingFruit(s) de plus!");
+    });
+  }
+
   function getMZUrl(latTL, lonTL, latBR, lonBR) {
     assumeNumber(latTL, "MZUrl::latTL");
     assumeNumber(lonTL, "MZUrl::lonTL");
@@ -269,19 +362,23 @@
     return rez;
   }
 
+  function _getStyleFromImageUrl(imgSrc, scale, opacity) {
+    var mzStyle = new ol.style.Style({
+      image: new ol.style.Icon({
+        scale: scale,
+        opacity: opacity,
+        src: imgSrc
+      })
+    });
+    return mzStyle;
+  }
+
   function _getMZStyle(icon) {
     var imgSrc = "https://munzee.global.ssl.fastly.net/images/icon_256.png";
     if (icon != undefined) {
       imgSrc = "https://munzee.global.ssl.fastly.net/images/pins/" + icon;
     }
-    var mzStyle = new ol.style.Style({
-      image: new ol.style.Icon({
-        scale: 0.25,
-        opacity: 1,
-        src: imgSrc
-      })
-    });
-    return mzStyle;
+    return _getStyleFromImageUrl(imgSrc, 0.25, 1);
   }
 
   function mz() {
@@ -408,7 +505,7 @@
   function _getWMStyle(icon) {
     var wmStyle = new ol.style.Style({
       image: new ol.style.Icon({
-        scale: 0.3,
+        scale: 0.40,
         opacity: 1,
         src: "http://www.waymarking.com/images/logo.gif"
       })
